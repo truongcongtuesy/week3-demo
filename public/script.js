@@ -1,17 +1,17 @@
 $(document).ready(function() {
-    // Handle form submit event
+    // Xử lý sự kiện submit form
     $('#loginForm').on('submit', function(e) {
-        e.preventDefault(); // Prevent default form submission
+        e.preventDefault(); // Ngăn form submit mặc định
         
-        // Hide all previous messages
+        // Ẩn tất cả messages trước đó
         $('#errormsg').removeClass('showmessage').addClass('hidemessage');
         $('#successmsg').removeClass('showmessage').addClass('hidemessage');
         
-        // Get form data
+        // Lấy dữ liệu từ form
         const email = $('#email').val();
         const password = $('#password').val();
         
-        // Send AJAX POST request
+        // Gửi AJAX POST request
         $.post('/login', {
             email: email,
             password: password
@@ -19,27 +19,27 @@ $(document).ready(function() {
         .done(function(data) {
             // Success callback
             if (data.valid === true) {
-                // Show success message
+                // Hiển thị thông báo thành công
                 $('#successmsg').removeClass('hidemessage').addClass('showmessage');
                 
-                // Redirect to account page after 2 seconds
+                // Chuyển hướng đến trang account sau 2 giây
                 setTimeout(function() {
                     window.location.href = '/account';
                 }, 2000);
             } else {
-                // Show error message
+                // Hiển thị thông báo lỗi
                 $('#errormsg').removeClass('hidemessage').addClass('showmessage');
             }
         })
         .fail(function(xhr, status, error) {
             // Error callback
-            console.error('AJAX Error:', error);
-            $('#errormsg').text('An error occurred. Please try again.');
+            console.error('Lỗi AJAX:', error);
+            $('#errormsg').text('Có lỗi xảy ra. Vui lòng thử lại.');
             $('#errormsg').removeClass('hidemessage').addClass('showmessage');
         });
     });
     
-    // Hide messages when user starts typing
+    // Ẩn messages khi user bắt đầu gõ
     $('#email, #password').on('input', function() {
         $('#errormsg').removeClass('showmessage').addClass('hidemessage');
         $('#successmsg').removeClass('showmessage').addClass('hidemessage');
