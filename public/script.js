@@ -1,45 +1,50 @@
 $(document).ready(function() {
-    // Xử lý sự kiện submit form
+    console.log('Script loaded successfully!'); // Debug log
+    
+    // Handle form submit event
     $('#loginForm').on('submit', function(e) {
-        e.preventDefault(); // Ngăn form submit mặc định
+        console.log('Form submitted!'); // Debug log
+        e.preventDefault(); // Prevent default form submission
         
-        // Ẩn tất cả messages trước đó
+        // Hide all previous messages
         $('#errormsg').removeClass('showmessage').addClass('hidemessage');
         $('#successmsg').removeClass('showmessage').addClass('hidemessage');
         
-        // Lấy dữ liệu từ form
+        // Get form data
         const email = $('#email').val();
         const password = $('#password').val();
         
-        // Gửi AJAX POST request
+        // Send AJAX POST request
         $.post('/login', {
             email: email,
             password: password
         })
         .done(function(data) {
+            console.log('Login response:', data); // Debug log
             // Success callback
             if (data.valid === true) {
-                // Hiển thị thông báo thành công
+                console.log('Login successful, showing message and redirecting...'); // Debug log
+                // Show success message
                 $('#successmsg').removeClass('hidemessage').addClass('showmessage');
                 
-                // Chuyển hướng đến trang account sau 2 giây
-                setTimeout(function() {
-                    window.location.href = '/account';
-                }, 2000);
+                // Redirect immediately for testing
+                console.log('Redirecting to /account...'); // Debug log
+                window.location.href = '/account';
             } else {
-                // Hiển thị thông báo lỗi
+                console.log('Login failed'); // Debug log
+                // Show error message
                 $('#errormsg').removeClass('hidemessage').addClass('showmessage');
             }
         })
         .fail(function(xhr, status, error) {
             // Error callback
-            console.error('Lỗi AJAX:', error);
-            $('#errormsg').text('Có lỗi xảy ra. Vui lòng thử lại.');
+            console.error('AJAX Error:', error);
+            $('#errormsg').text('An error occurred. Please try again.');
             $('#errormsg').removeClass('hidemessage').addClass('showmessage');
         });
     });
     
-    // Ẩn messages khi user bắt đầu gõ
+    // Hide messages when user starts typing
     $('#email, #password').on('input', function() {
         $('#errormsg').removeClass('showmessage').addClass('hidemessage');
         $('#successmsg').removeClass('showmessage').addClass('hidemessage');

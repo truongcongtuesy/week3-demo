@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile - Week 3 Workshop</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="edit-profile-form">
+            <h2>Edit Profile</h2>
+            
+            <!-- Current Avatar Preview -->
+            <div class="avatar-preview">
+                <img id="currentAvatar" src="" alt="Current Avatar" class="avatar-img">
+                <p>Current Avatar</p>
+            </div>
+            
+            <form id="editProfileForm">
+                <div class="form-group">
+                    <label for="name">Full Name:</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                
+                <!-- Avatar Selection -->
+                <div class="form-group">
+                    <label>Choose Your Avatar:</label>
+                    <div class="avatar-selector">
+                        <div class="avatar-option" data-avatar="avatar1.png">
+                            <span class="avatar-emoji">😢</span>
+                            <p>Sad Blue</p>
+                        </div>
+                        <div class="avatar-option" data-avatar="avatar2.png">
+                            <span class="avatar-emoji">🥰</span>
+                            <p>Happy Hearts</p>
+                        </div>
+                        <div class="avatar-option" data-avatar="avatar3.png">
+                            <span class="avatar-emoji">🫠</span>
+                            <p>Melting</p>
+                        </div>
+                        <div class="avatar-option" data-avatar="avatar4.png">
+                            <span class="avatar-emoji">😋</span>
+                            <p>Tongue Out</p>
+                        </div>
+                        <div class="avatar-option" data-avatar="avatar5.png">
+                            <span class="avatar-emoji">😂</span>
+                            <p>Laughing</p>
+                        </div>
+                    </div>
+                    <input type="hidden" id="selectedAvatar" name="avatar" value="">
+                </div>
+                
+                <div class="form-buttons">
+                    <button type="submit" id="saveBtn" class="btn">Save Changes</button>
+                    <a href="/account" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+            
+            <!-- Success/Error Messages -->
+            <div id="profileMessage" class="hidemessage"></div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Load current user data
+            loadCurrentUserData();
+            
+            // Handle avatar option selection
+            $('.avatar-option').on('click', function() {
+                const avatarUrl = $(this).data('url');
+                $('#avatar').val(avatarUrl);
+                $('.avatar-option').removeClass('selected');
+                $(this).addClass('selected');
+            });
+            
+            // Handle form submission
+            // Avatar selection handler
+            $('.avatar-selector .avatar-option').on('click', function() {
+                // Remove selected class from all options
+                $('.avatar-selector .avatar-option').removeClass('selected');
+                // Add selected class to clicked option
+                $(this).addClass('selected');
+                // Set hidden input value
+                const avatarValue = $(this).data('avatar');
+                $('#selectedAvatar').val(avatarValue);
+                
+                // Update current avatar preview
+                const emojiMap = {
+                    'avatar1.png': '😢',
+                    'avatar2.png': '🥰', 
+                    'avatar3.png': '🫠',
+                    'avatar4.png': '😋',
+                    'avatar5.png': '😂'
+                };
+                
+                const emoji = emojiMap[avatarValue] || '😊';
+                $('#currentAvatar').attr('src', 'data:image/svg+xml;charset=UTF-8,' + 
+                    encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150"><text x="50%" y="50%" text-anchor="middle" dy=".3em" font-size="80">' + emoji + '</text></svg>'));
+            });
+
+            $('#editProfileForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = {
+                    name: $('#name').val().trim(),
+                    avatar: $('#selectedAvatar').val() || $('#selectedAvatar').val()
+                };
+                
+                // Show loading state
+                $('#saveBtn').prop('disabled', true).text('Saving...');
+                
+                $.post('/api/update-profile', formData)
+                .done(function(data) {
+                    if (data.success) {
+                        showMessage('Profile updated successfully!', 'success');
+                        // Update current avatar preview
+                        updateAvatarDisplay(data.user.avatar);
+                        
+                        // Redirect to account page after 2 seconds
+                        setTimeout(function() {
+                            window.location.href = '/account';
+                        }, 2000);
+                    } else {
+                        showMessage(data.message || 'Failed to update profile', 'error');
+                    }
+                })
+                .fail(function() {
+                    showMessage('An error occurred. Please try again.', 'error');
+                })
+                .always(function() {
+                    $('#saveBtn').prop('disabled', false).text('Save Changes');
+                });
+            });
+            
+            function updateAvatarDisplay(avatarFilename) {
+                const emojiMap = {
+                    'avatar1.png': '😢',
+                    'avatar2.png': '🥰', 
+                    'avatar3.png': '🫠',
+                    'avatar4.png': '😋',
+                    'avatar5.png': '😂'
+                };
+                
+                const emoji = emojiMap[avatarFilename] || '😊';
+                $('#currentAvatar').attr('src', 'data:image/svg+xml;charset=UTF-8,' + 
+                    encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150"><text x="50%" y="50%" text-anchor="middle" dy=".3em" font-size="80">' + emoji + '</text></svg>'));
+            }
+
+            function loadCurrentUserData() {
+                $.get('/api/user')
+                .done(function(data) {
+                    if (data.success && data.user) {
+                        $('#name').val(data.user.name);
+                        $('#selectedAvatar').val(data.user.avatar);
+                        
+                        // Update avatar display
+                        updateAvatarDisplay(data.user.avatar);
+                        
+                        // Select current avatar option
+                        $('.avatar-selector .avatar-option').removeClass('selected');
+                        $('.avatar-selector .avatar-option[data-avatar="' + data.user.avatar + '"]').addClass('selected');
+                    }
+                })
+                .fail(function() {
+                    window.location.href = '/';
+                });
+            }
+            
+            function showMessage(message, type) {
+                const messageDiv = $('#profileMessage');
+                messageDiv.removeClass('hidemessage showmessage success error')
+                    .addClass('showmessage ' + type)
+                    .text(message);
+                
+                // Auto-hide after 5 seconds
+                setTimeout(function() {
+                    messageDiv.removeClass('showmessage').addClass('hidemessage');
+                }, 5000);
+            }
+        });
+    </script>
+</body>
+</html>

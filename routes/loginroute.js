@@ -1,24 +1,39 @@
+const userData = require('../userData');
+
 module.exports = {
     route: (app, path) => {
-        // Hardcoded user data
-        const users = [
-            { email: "user1@email.com", password: "123" },
-            { email: "user2@email.com", password: "456" },
-            { email: "admin@email.com", password: "admin123" }
-        ];
-
         // Route to handle login POST request
         app.post('/login', function(req, res) {
+            console.log('Login request received:', req.body); // Debug log
             const { email, password } = req.body;
             
-            // Check login credentials
-            const user = users.find(u => u.email === email && u.password === password);
+            // Check login credentials using userData module
+            const user = userData.findUserByCredentials(email, password);
+            console.log('User found:', user ? 'Yes' : 'No'); // Debug log
             
             if (user) {
+                // Save user info in session
+                req.session.user = {
+                    id: user.id,
+                    email: user.email,
+                    name: user.name,
+                    avatar: user.avatar
+                };
+                console.log('Session saved:', req.session.user); // Debug log
                 res.json({ valid: true });
             } else {
                 res.json({ valid: false });
             }
+        });
+        
+        // Logout route
+        app.post('/logout', function(req, res) {
+            req.session.destroy((err) => {
+                if (err) {
+                    return res.json({ success: false, message: 'Logout failed' });
+                }
+                res.json({ success: true, message: 'Logged out successfully' });
+            });
         });
     }
 };

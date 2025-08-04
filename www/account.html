@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account - Week 3 Workshop</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="account-page">
+            <h2>Account Information</h2>
+            
+            <!-- User Avatar -->
+            <div class="user-avatar">
+                <img id="userAvatar" src="" alt="User Avatar" class="avatar-img">
+            </div>
+            
+            <!-- Account Information -->
+            <div class="account-info">
+                <h3 id="userName">Loading...</h3>
+                <p><strong>Email:</strong> <span id="userEmail">Loading...</span></p>
+                <p><strong>Role:</strong> User</p>
+                <p><strong>Join Date:</strong> 01/01/2024</p>
+                <p><strong>Status:</strong> Active</p>
+            </div>
+            
+            <!-- Success/Error Messages -->
+            <div id="profileMessage" class="hidemessage"></div>
+            
+            <div class="actions">
+                <a href="/" class="btn">Back to Home</a>
+                <a href="/edit-profile" class="btn btn-secondary">Edit Profile</a>
+                <button id="logoutBtn" class="btn btn-danger">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Load user data when page loads
+            loadUserData();
+            
+            // Logout functionality
+            $('#logoutBtn').on('click', function() {
+                if (confirm('Are you sure you want to logout?')) {
+                    $.post('/logout')
+                    .done(function(data) {
+                        if (data.success) {
+                            window.location.href = '/';
+                        }
+                    })
+                    .fail(function() {
+                        alert('Logout failed. Please try again.');
+                    });
+                }
+            });
+            
+            function updateAvatarDisplay(avatarFilename) {
+                const emojiMap = {
+                    'avatar1.png': '😢',
+                    'avatar2.png': '🥰', 
+                    'avatar3.png': '🫠',
+                    'avatar4.png': '😋',
+                    'avatar5.png': '😂'
+                };
+                
+                const emoji = emojiMap[avatarFilename] || '😊';
+                $('#userAvatar').attr('src', 'data:image/svg+xml;charset=UTF-8,' + 
+                    encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150"><text x="50%" y="50%" text-anchor="middle" dy=".3em" font-size="80">' + emoji + '</text></svg>'));
+            }
+
+            function loadUserData() {
+                $.get('/api/user')
+                .done(function(data) {
+                    if (data.success && data.user) {
+                        $('#userName').text(data.user.name);
+                        $('#userEmail').text(data.user.email);
+                        updateAvatarDisplay(data.user.avatar);
+                    }
+                })
+                .fail(function() {
+                    // If not logged in, redirect to home
+                    window.location.href = '/';
+                });
+            }
+        });
+    </script>
+</body>
+</html>
